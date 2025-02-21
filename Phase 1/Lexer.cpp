@@ -13,12 +13,20 @@ vector<vector<int>> Transition;
 vector<vector<int>> Advance;
 vector<string> Keywords;
 set<string> SymbolSet;
+set<string> KeywordSet;
 
 string removeTrailingSpaces(string str) {
   int i = 0;
   while (str[i] == ' ')
     i++;
   return str.substr(i, str.length());
+}
+
+bool isSpace(string str) {
+  for (auto c : str)
+    if (c != ' ')
+      return false;
+  return true;
 }
 
 bool isAlpha(char c) {
@@ -73,6 +81,44 @@ void toSymbolTable(string lexeme) {
 
   SymbolTable << "<" << symbolTableID++ << ", " << lexeme << ">" << endl;
   SymbolTable.close();
+
+  return;
+}
+
+void toErrorTable(string inValidLex) {
+  ofstream ErrorTable("ErrorTable.txt", ios::app);
+
+  if (!ErrorTable.is_open()) {
+    cout << "Error: ErrorTable.txt not found" << endl;
+    return;
+  }
+
+  if (!isSpace(inValidLex)) {
+    inValidLex = removeTrailingSpaces(inValidLex);
+    ErrorTable << inValidLex << endl;
+  }
+
+  ErrorTable.close();
+
+  return;
+}
+
+void toKeywordTable(string lexeme) {
+  if (KeywordSet.find(removeTrailingSpaces(lexeme)) != KeywordSet.end())
+    return;
+
+  ofstream KeywordTable("KeywordTable.txt", ios::app);
+
+  if (!KeywordTable.is_open()) {
+    cout << "Error: KeywordTable.txt not found" << endl;
+    return;
+  }
+
+  lexeme = removeTrailingSpaces(lexeme);
+  KeywordSet.insert(lexeme);
+
+  KeywordTable << lexeme << endl;
+  KeywordTable.close();
 
   return;
 }
@@ -168,6 +214,16 @@ vector<string> getLexemes() {
       ch = getMapped(*forwardPointer);
       state = Transition[state][ch];
 
+      if (state == -1) {
+
+        if (!isKeyword(string(bufferPointer, forwardPointer)))
+          toErrorTable(string(bufferPointer, forwardPointer));
+        else
+          toKeywordTable(string(bufferPointer, forwardPointer));
+
+        bufferPointer = forwardPointer;
+        state = 0;
+      }
       if (Accept(state) == 0)
         forwardPointer++;
       else if (Accept(state) == 1) {
@@ -181,10 +237,10 @@ vector<string> getLexemes() {
 
         bufferPointer = forwardPointer;
       } else {
-        forwardPointer++;
         state = 0;
 
         string lexeme = string(bufferPointer, forwardPointer);
+        forwardPointer++;
 
         if (!isKeyword(lexeme))
           toSymbolTable(lexeme);
