@@ -10,4 +10,4 @@ Adadi Marqazi () {
     Wagarna
     input-> _num ::
     Wapas 0 ::
-}
+} 

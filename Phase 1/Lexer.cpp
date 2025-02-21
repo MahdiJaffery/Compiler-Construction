@@ -216,15 +216,17 @@ vector<string> getLexemes() {
 
       if (state == -1) {
 
-        if (!isKeyword(string(bufferPointer, forwardPointer)))
+        if (forwardPointer - bufferPointer == 0)
+          toErrorTable(string(bufferPointer, forwardPointer + 1));
+        else if (!isKeyword(string(bufferPointer, forwardPointer)))
           toErrorTable(string(bufferPointer, forwardPointer));
         else
           toKeywordTable(string(bufferPointer, forwardPointer));
 
+        forwardPointer++;
         bufferPointer = forwardPointer;
         state = 0;
-      }
-      if (Accept(state) == 0)
+      } else if (Accept(state) == 0)
         forwardPointer++;
       else if (Accept(state) == 1) {
         forwardPointer++;
