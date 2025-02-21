@@ -1,3 +1,0 @@
-<1, _num >
-<2, num_1 >
-<3, myVariable_ >
