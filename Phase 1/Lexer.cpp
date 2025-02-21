@@ -57,6 +57,20 @@ int getMapped(char c) {
     return 5;
   else if (c == 'E')
     return 6;
+  else if (c == ':')
+    return 9;
+  else if (c == '{')
+    return 10;
+  else if (c == '[')
+    return 11;
+  else if (c == '(')
+    return 12;
+  else if (c == ')')
+    return 13;
+  else if (c == ']')
+    return 14;
+  else if (c == '}')
+    return 15;
   else if (!isAlpha(c) && !isDigit(c) && c != '_')
     return 7;
   else if (!isDigit(c) && c != '.')
@@ -103,6 +117,21 @@ void toErrorTable(string inValidLex) {
   return;
 }
 
+void toPunctuationTable(string lexeme) {
+  ofstream PunctuationTable("PunctuationTable.txt", ios::app);
+
+  if (!PunctuationTable.is_open()) {
+    cout << "Error: PunctuationTable.txt not found" << endl;
+    return;
+  }
+
+  lexeme = removeTrailingSpaces(lexeme);
+  PunctuationTable << lexeme << endl;
+  PunctuationTable.close();
+
+  return;
+}
+
 void toKeywordTable(string lexeme) {
   if (KeywordSet.find(removeTrailingSpaces(lexeme)) != KeywordSet.end())
     return;
@@ -142,6 +171,8 @@ vector<vector<int>> getTransitionTable() {
     while (ss >> value) {
       if (value == "-") // If value is "-", push -1
         row.push_back(-1);
+      else if (value[0] >= 'A' && value[0] <= 'Z')
+        row.push_back(int(value[0] - 55));
       else
         row.push_back(stoi(value)); // Convert string to int
     }
@@ -235,7 +266,7 @@ vector<string> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
 
         if (!isKeyword(lexeme))
-          toSymbolTable(lexeme);
+          toPunctuationTable(lexeme);
 
         bufferPointer = forwardPointer;
       } else {
@@ -261,22 +292,22 @@ int main() {
   getAdvanceTable(Transition);
   getKeywords();
 
-  //   cout << "\nTransition Table:\n";
+  // cout << "\nTransition Table:\n";
 
-  //   for (auto row : Transition) {
-  //     for (auto cell : row) {
-  //       cout << setw(5) << cell;
-  //     }
-  //     cout << endl;
+  // for (auto row : Transition) {
+  //   for (auto cell : row) {
+  //     cout << setw(5) << cell;
   //   }
+  //   cout << endl;
+  // }
 
-  //   cout << "\n\nAdvance Table:\n";
+  // cout << "\n\nAdvance Table:\n";
 
-  //   for (auto row : Advance) {
-  //     for (auto cell : row)
-  //       cout << setw(5) << cell;
-  //     cout << endl;
-  //   }
+  // for (auto row : Advance) {
+  //   for (auto cell : row)
+  //     cout << setw(5) << cell;
+  //   cout << endl;
+  // }
 
   //   cout << "\nKeywords:\n";
 
