@@ -77,6 +77,20 @@ void toSymbolTable(string lexeme) {
   return;
 }
 
+void toErrorTable(string inValidLex) {
+  ofstream ErrorTable("ErrorTable.txt", ios::app);
+
+  if (!ErrorTable.is_open()) {
+    cout << "Error: ErrorTable.txt not found" << endl;
+    return;
+  }
+
+  ErrorTable << inValidLex << endl;
+  ErrorTable.close();
+
+  return;
+}
+
 vector<vector<int>> getTransitionTable() {
   ifstream TransitionFile("Transitions.txt");
 
@@ -168,6 +182,11 @@ vector<string> getLexemes() {
       ch = getMapped(*forwardPointer);
       state = Transition[state][ch];
 
+      if (Accept(state) == -1) {
+        toErrorTable(string(bufferPointer, forwardPointer));
+        bufferPointer = forwardPointer;
+        state = 0;
+      }
       if (Accept(state) == 0)
         forwardPointer++;
       else if (Accept(state) == 1) {
