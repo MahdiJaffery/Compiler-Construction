@@ -182,7 +182,7 @@ vector<string> getLexemes() {
       ch = getMapped(*forwardPointer);
       state = Transition[state][ch];
 
-      if (Accept(state) == -1) {
+      if (state == -1) {
         toErrorTable(string(bufferPointer, forwardPointer));
         bufferPointer = forwardPointer;
         state = 0;

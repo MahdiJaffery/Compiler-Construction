@@ -1,2 +1,2 @@
 _num num_1 myVariable_ 
-myVariable_ newVariable
+myVariable_ newVariable 
