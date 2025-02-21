@@ -14,6 +14,13 @@ vector<vector<int>> Advance;
 vector<string> Keywords;
 set<string> SymbolSet;
 
+string removeTrailingSpaces(string str) {
+  int i = 0;
+  while (str[i] == ' ')
+    i++;
+  return str.substr(i, str.length());
+}
+
 bool isAlpha(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
@@ -50,9 +57,7 @@ int getMapped(char c) {
     return -2;
 }
 
-int Accept(int state) {
-    return Transition[state].back();
-}
+int Accept(int state) { return Transition[state].back(); }
 
 void toSymbolTable(string lexeme) {
   if (SymbolSet.find(lexeme) != SymbolSet.end())
@@ -152,6 +157,8 @@ vector<string> getLexemes() {
   char *bufferPointer, *forwardPointer;
 
   while (getline(LexemesFile, line)) {
+    line = removeTrailingSpaces(line);
+
     bufferPointer = &line[0];
     forwardPointer = bufferPointer;
 
@@ -182,7 +189,7 @@ vector<string> getLexemes() {
         if (!isKeyword(lexeme))
           toSymbolTable(lexeme);
 
-        forwardPointer--;
+        // forwardPointer--;
         bufferPointer = forwardPointer;
       }
     }
