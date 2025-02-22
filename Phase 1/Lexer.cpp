@@ -12,6 +12,7 @@ int symbolTableID = 1;
 vector<vector<int>> Transition;
 vector<vector<int>> Advance;
 vector<string> Keywords;
+
 set<string> SymbolSet;
 set<string> KeywordSet;
 
@@ -152,6 +153,26 @@ void toKeywordTable(string lexeme) {
   return;
 }
 
+void toTokenFile(vector<pair<string, int>> Lexemes) {
+  ofstream TokenFile("Tokens.txt");
+
+  if (!TokenFile.is_open()) {
+    cout << "Error: Tokens.txt not found" << endl;
+    return;
+  }
+
+  int lineCount = 1;
+  for (auto lexeme : Lexemes)
+    if (lexeme.second != lineCount) {
+
+      TokenFile << endl << lexeme.first << "\t";
+      lineCount++;
+    } else
+      TokenFile << lexeme.first << "\t";
+
+  return;
+}
+
 vector<vector<int>> getTransitionTable() {
   ifstream TransitionFile("Transitions.txt");
 
@@ -169,12 +190,10 @@ vector<vector<int>> getTransitionTable() {
     vector<int> row;
 
     while (ss >> value) {
-      if (value == "-") // If value is "-", push -1
+      if (value == "-")
         row.push_back(-1);
-      else if (value[0] >= 'A' && value[0] <= 'Z')
-        row.push_back(int(value[0] - 55));
       else
-        row.push_back(stoi(value)); // Convert string to int
+        row.push_back(stoi(value));
     }
 
     Transition.push_back(row);
@@ -228,12 +247,15 @@ vector<string> getLexemes() {
     return {};
   }
 
+  vector<pair<string, int>> Lexemes;
+
   string line;
-  int state = 0, ch;
+  int state = 0, ch, lineCount = 0;
 
   char *bufferPointer, *forwardPointer;
 
   while (getline(LexemesFile, line)) {
+    lineCount++;
     line = removeTrailingSpaces(line);
 
     bufferPointer = &line[0];
@@ -251,8 +273,12 @@ vector<string> getLexemes() {
           toErrorTable(string(bufferPointer, forwardPointer + 1));
         else if (!isKeyword(string(bufferPointer, forwardPointer)))
           toErrorTable(string(bufferPointer, forwardPointer));
-        else
+        else {
           toKeywordTable(string(bufferPointer, forwardPointer));
+          Lexemes.push_back(make_pair(
+              "<keyword, " + string(bufferPointer, forwardPointer) + ">",
+              lineCount));
+        }
 
         forwardPointer++;
         bufferPointer = forwardPointer;
@@ -265,8 +291,10 @@ vector<string> getLexemes() {
 
         string lexeme = string(bufferPointer, forwardPointer);
 
-        if (!isKeyword(lexeme))
+        if (!isKeyword(lexeme)) {
           toPunctuationTable(lexeme);
+          Lexemes.push_back(make_pair("<punc, " + lexeme + ">", lineCount));
+        }
 
         bufferPointer = forwardPointer;
       } else {
@@ -275,14 +303,19 @@ vector<string> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
         forwardPointer++;
 
-        if (!isKeyword(lexeme))
+        if (!isKeyword(lexeme)) {
           toSymbolTable(lexeme);
+          Lexemes.push_back(make_pair("<" + to_string(symbolTableID - 1) +
+                                          ", " + lexeme + ">",
+                                      lineCount));
+        }
 
-        // forwardPointer--;
         bufferPointer = forwardPointer;
       }
     }
   }
+
+  toTokenFile(Lexemes);
 
   return {};
 }
