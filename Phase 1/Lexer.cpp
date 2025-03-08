@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -7,14 +8,16 @@
 #include <vector>
 using namespace std;
 
-int symbolTableID = 1;
+int symbolTableID = 1, keywordTableID = 1, puncTableID = 1, literalID = 1;
 
 vector<vector<int>> Transition;
 vector<vector<int>> Advance;
 vector<string> Keywords;
 
-set<string> SymbolSet;
-set<string> KeywordSet;
+set<pair<string, int>> SymbolSet;
+set<pair<string, int>> KeywordSet;
+set<pair<string, int>> PunctuationSet;
+set<pair<string, int>> LiteralSet;
 
 string removeTrailingSpaces(string str) {
   int i = 0;
@@ -82,11 +85,15 @@ int getMapped(char c) {
 
 int Accept(int state) { return Transition[state].back(); }
 
-void toSymbolTable(string lexeme) {
-  if (SymbolSet.find(lexeme) != SymbolSet.end())
-    return;
+void toSymbolTable(string lexeme, vector<pair<string, int>> &Lexeme,
+                   int lineCount) {
+  auto it =
+      find_if(SymbolSet.begin(), SymbolSet.end(),
+              [&](const pair<string, int> &p) { return p.first == lexeme; });
 
-  SymbolSet.insert(lexeme);
+  if (it == SymbolSet.end())
+    SymbolSet.insert(make_pair(lexeme, symbolTableID++));
+
   ofstream SymbolTable("SymbolTable.txt", ios::app);
 
   if (!SymbolTable.is_open()) {
@@ -94,8 +101,40 @@ void toSymbolTable(string lexeme) {
     return;
   }
 
-  SymbolTable << "<" << symbolTableID++ << ", " << lexeme << ">" << endl;
+  if (it == SymbolSet.end()) {
+    SymbolTable << "<" << to_string(symbolTableID - 1) << ", " << lexeme << ">"
+                << endl;
+    Lexeme.push_back(make_pair(
+        "<s" + to_string(symbolTableID - 1) + ", " + lexeme + ">", lineCount));
+  } else
+    Lexeme.push_back(make_pair(
+        "<s" + to_string(it->second) + ", " + it->first + ">", lineCount));
+
   SymbolTable.close();
+  return;
+}
+
+void toLiteralTable(string lexeme, vector<pair<string, int>> &Lexeme,
+                    int lineCount) {
+  auto it =
+      find_if(LiteralSet.begin(), LiteralSet.end(),
+              [&](const pair<string, int> &p) { return p.first == lexeme; });
+
+  if (it == LiteralSet.end())
+    LiteralSet.insert(make_pair(lexeme, literalID++));
+
+  ofstream LiteralTable("LiteralTable.txt", ios::app);
+
+  if (it == LiteralSet.end()) {
+    LiteralTable << "<l" << to_string(literalID - 1) << ", " << lexeme << ">"
+                 << endl;
+    Lexeme.push_back(make_pair(
+        "<l" + to_string(literalID - 1) + ", " + lexeme + ">", lineCount));
+  } else
+    Lexeme.push_back(make_pair(
+        "<l" + to_string(it->second) + ", " + it->first + ">", lineCount));
+
+  LiteralTable.close();
 
   return;
 }
@@ -118,7 +157,15 @@ void toErrorTable(string inValidLex) {
   return;
 }
 
-void toPunctuationTable(string lexeme) {
+void toPunctuationTable(string lexeme, vector<pair<string, int>> &Lexeme,
+                        int lineCount) {
+  auto it =
+      find_if(PunctuationSet.begin(), PunctuationSet.end(),
+              [&](const pair<string, int> &p) { return p.first == lexeme; });
+
+  if (it == PunctuationSet.end())
+    PunctuationSet.insert(make_pair(lexeme, puncTableID++));
+
   ofstream PunctuationTable("PunctuationTable.txt", ios::app);
 
   if (!PunctuationTable.is_open()) {
@@ -127,15 +174,27 @@ void toPunctuationTable(string lexeme) {
   }
 
   lexeme = removeTrailingSpaces(lexeme);
-  PunctuationTable << lexeme << endl;
-  PunctuationTable.close();
+  if (it == PunctuationSet.end()) {
+    PunctuationTable << '<' << to_string(puncTableID - 1) << ", " << lexeme
+                     << ">" << endl;
+    Lexeme.push_back(make_pair(
+        "<p" + to_string(puncTableID - 1) + ", " + lexeme + ">", lineCount));
+  } else
+    Lexeme.push_back(make_pair(
+        "<p" + to_string(it->second) + ", " + it->first + ">", lineCount));
 
+  PunctuationTable.close();
   return;
 }
 
-void toKeywordTable(string lexeme) {
-  if (KeywordSet.find(removeTrailingSpaces(lexeme)) != KeywordSet.end())
-    return;
+void toKeywordTable(string lexeme, vector<pair<string, int>> &Lexeme,
+                    int lineCount) {
+  auto it =
+      find_if(KeywordSet.begin(), KeywordSet.end(),
+              [&](const pair<string, int> &p) { return p.first == lexeme; });
+
+  if (it == KeywordSet.end())
+    KeywordSet.insert(make_pair(lexeme, keywordTableID++));
 
   ofstream KeywordTable("KeywordTable.txt", ios::app);
 
@@ -144,12 +203,16 @@ void toKeywordTable(string lexeme) {
     return;
   }
 
-  lexeme = removeTrailingSpaces(lexeme);
-  KeywordSet.insert(lexeme);
+  if (it == KeywordSet.end()) {
+    KeywordTable << "<" << to_string(keywordTableID - 1) << ", " << lexeme
+                 << ">" << endl;
+    Lexeme.push_back(make_pair(
+        "<k" + to_string(keywordTableID - 1) + ", " + lexeme + ">", lineCount));
+  } else
+    Lexeme.push_back(make_pair(
+        "<k" + to_string(it->second) + ", " + it->first + ">", lineCount));
 
-  KeywordTable << lexeme << endl;
   KeywordTable.close();
-
   return;
 }
 
@@ -239,7 +302,7 @@ vector<string> getKeywords() {
   return {};
 }
 
-vector<string> getLexemes() {
+vector<pair<string, int>> getLexemes() {
   ifstream LexemesFile("Source.txt");
 
   if (!LexemesFile.is_open()) {
@@ -272,13 +335,10 @@ vector<string> getLexemes() {
         if (forwardPointer - bufferPointer == 0)
           toErrorTable(string(bufferPointer, forwardPointer + 1));
         else if (!isKeyword(string(bufferPointer, forwardPointer)))
-          toErrorTable(string(bufferPointer, forwardPointer));
-        else {
-          toKeywordTable(string(bufferPointer, forwardPointer));
-          Lexemes.push_back(make_pair(
-              "<keyword, " + string(bufferPointer, forwardPointer) + ">",
-              lineCount));
-        }
+          toLiteralTable(string(bufferPointer, forwardPointer), Lexemes, lineCount);
+        else
+          toKeywordTable(string(bufferPointer, forwardPointer), Lexemes,
+                         lineCount);
 
         forwardPointer++;
         bufferPointer = forwardPointer;
@@ -291,10 +351,8 @@ vector<string> getLexemes() {
 
         string lexeme = string(bufferPointer, forwardPointer);
 
-        if (!isKeyword(lexeme)) {
-          toPunctuationTable(lexeme);
-          Lexemes.push_back(make_pair("<punc, " + lexeme + ">", lineCount));
-        }
+        if (!isKeyword(lexeme))
+          toPunctuationTable(lexeme, Lexemes, lineCount);
 
         bufferPointer = forwardPointer;
       } else {
@@ -303,12 +361,8 @@ vector<string> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
         forwardPointer++;
 
-        if (!isKeyword(lexeme)) {
-          toSymbolTable(lexeme);
-          Lexemes.push_back(make_pair("<" + to_string(symbolTableID - 1) +
-                                          ", " + lexeme + ">",
-                                      lineCount));
-        }
+        if (!isKeyword(lexeme))
+          toSymbolTable(lexeme, Lexemes, lineCount);
 
         bufferPointer = forwardPointer;
       }
@@ -317,7 +371,7 @@ vector<string> getLexemes() {
 
   toTokenFile(Lexemes);
 
-  return {};
+  return Lexemes;
 }
 
 int main() {
@@ -325,29 +379,11 @@ int main() {
   getAdvanceTable(Transition);
   getKeywords();
 
-  // cout << "\nTransition Table:\n";
+  vector<pair<string, int>> Tokens = getLexemes();
 
-  // for (auto row : Transition) {
-  //   for (auto cell : row) {
-  //     cout << setw(5) << cell;
-  //   }
-  //   cout << endl;
-  // }
-
-  // cout << "\n\nAdvance Table:\n";
-
-  // for (auto row : Advance) {
-  //   for (auto cell : row)
-  //     cout << setw(5) << cell;
-  //   cout << endl;
-  // }
-
-  //   cout << "\nKeywords:\n";
-
-  //   for (auto keyword : Keywords)
-  //     cout << keyword << endl;
-
-  getLexemes();
-
+  if (!Tokens.empty())
+    cout << "Program Compiled Successfully!\n";
+  else
+    cout << "Error Compiling Program\n";
   return 0;
 }
