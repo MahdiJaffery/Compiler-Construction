@@ -27,6 +27,9 @@ string removeTrailingSpaces(string str) {
 }
 
 bool isSpace(string str) {
+  if (!str.length())
+    return true;
+
   for (auto c : str)
     if (c != ' ')
       return false;
@@ -109,6 +112,8 @@ int Accept(int state) { return Transition[state].back(); }
 
 void toSymbolTable(string lexeme, vector<pair<string, int>> &Lexeme,
                    int lineCount) {
+  if (isSpace(lexeme))
+    return;
   auto it =
       find_if(SymbolSet.begin(), SymbolSet.end(),
               [&](const pair<string, int> &p) { return p.first == lexeme; });
@@ -138,6 +143,8 @@ void toSymbolTable(string lexeme, vector<pair<string, int>> &Lexeme,
 
 void toLiteralTable(string lexeme, vector<pair<string, int>> &Lexeme,
                     int lineCount) {
+  if (isSpace(lexeme))
+    return;
   auto it =
       find_if(LiteralSet.begin(), LiteralSet.end(),
               [&](const pair<string, int> &p) { return p.first == lexeme; });
@@ -162,6 +169,9 @@ void toLiteralTable(string lexeme, vector<pair<string, int>> &Lexeme,
 }
 
 void toErrorTable(string inValidLex) {
+  if (isSpace(inValidLex))
+    return;
+
   ofstream ErrorTable("ErrorTable.txt", ios::app);
 
   if (!ErrorTable.is_open()) {
@@ -181,6 +191,8 @@ void toErrorTable(string inValidLex) {
 
 void toPunctuationTable(string lexeme, vector<pair<string, int>> &Lexeme,
                         int lineCount) {
+  if (isSpace(lexeme))
+    return;
   auto it =
       find_if(PunctuationSet.begin(), PunctuationSet.end(),
               [&](const pair<string, int> &p) { return p.first == lexeme; });
@@ -211,6 +223,8 @@ void toPunctuationTable(string lexeme, vector<pair<string, int>> &Lexeme,
 
 void toKeywordTable(string lexeme, vector<pair<string, int>> &Lexeme,
                     int lineCount) {
+  if (isSpace(lexeme))
+    return;
   auto it =
       find_if(KeywordSet.begin(), KeywordSet.end(),
               [&](const pair<string, int> &p) { return p.first == lexeme; });
@@ -384,7 +398,9 @@ vector<pair<string, int>> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
         forwardPointer++;
 
-        if (!isKeyword(lexeme))
+        if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-')
+          toLiteralTable(lexeme, Lexemes, lineCount);
+        else if (!isKeyword(lexeme))
           toSymbolTable(lexeme, Lexemes, lineCount);
 
         bufferPointer = forwardPointer;
