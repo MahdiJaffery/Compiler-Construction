@@ -61,24 +61,46 @@ int getMapped(char c) {
     return 5;
   else if (c == 'E')
     return 6;
-  else if (c == ':')
-    return 9;
   else if (c == '{')
-    return 10;
-  else if (c == '[')
-    return 11;
-  else if (c == '(')
-    return 12;
-  else if (c == ')')
-    return 13;
-  else if (c == ']')
-    return 14;
-  else if (c == '}')
-    return 15;
-  else if (!isAlpha(c) && !isDigit(c) && c != '_')
     return 7;
-  else if (!isDigit(c) && c != '.')
+  else if (c == '[')
     return 8;
+  else if (c == '(')
+    return 9;
+  else if (c == ')')
+    return 10;
+  else if (c == ']')
+    return 11;
+  else if (c == '}')
+    return 12;
+  else if (c == ':')
+    return 13;
+  else if (c == '<')
+    return 14;
+  else if (c == '>')
+    return 15;
+  else if (c == '=')
+    return 16;
+  else if (c == '!')
+    return 17;
+  else if (c == '|')
+    return 18;
+  else if (c == '&')
+    return 19;
+  else if (c == '%')
+    return 20;
+  else if (c == '\"')
+    return 21;
+  else if (c == '*')
+    return 22;
+  else if (c == '/')
+    return 23;
+  else if (!isAlpha(c) && !isDigit(c) && c != '_')
+    return 24;
+  else if (c != 'E' && !isDigit(c) && c != '.')
+    return 25;
+  else if (c != '>' && c != '<' && c != '=' && c != '+')
+    return 26;
   else
     return -2;
 }
@@ -335,7 +357,8 @@ vector<pair<string, int>> getLexemes() {
         if (forwardPointer - bufferPointer == 0)
           toErrorTable(string(bufferPointer, forwardPointer + 1));
         else if (!isKeyword(string(bufferPointer, forwardPointer)))
-          toLiteralTable(string(bufferPointer, forwardPointer), Lexemes, lineCount);
+          toLiteralTable(string(bufferPointer, forwardPointer), Lexemes,
+                         lineCount);
         else
           toKeywordTable(string(bufferPointer, forwardPointer), Lexemes,
                          lineCount);
