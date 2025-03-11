@@ -21,6 +21,13 @@ set<pair<string, int>> PunctuationSet;
 set<pair<string, int>> LiteralSet;
 set<pair<string, int>> OperatorSet;
 
+bool notInTables(string str) {
+  auto it = find_if(SymbolSet.begin(), SymbolSet.end(),
+                    [&](const pair<string, int> &p) { return p.first == str; });
+
+  return it == SymbolSet.end();
+}
+
 string removeTrailingSpaces(string str) {
   int i = 0;
   while (str[i] == ' ')
@@ -439,6 +446,9 @@ vector<pair<string, int>> getLexemes() {
                    lexeme[0] == '\'' || lexeme[0] == '"' || isAlpha(lexeme[0]))
             toLiteralTable(string(bufferPointer, forwardPointer), Lexemes,
                            lineCount);
+          else if (isAlpha(lexeme[0]) &&
+                   notInTables(string(bufferPointer, forwardPointer)))
+            toErrorTable(string(bufferPointer, forwardPointer));
           else
             toOperatorTable(lexeme, Lexemes, lineCount);
         } else

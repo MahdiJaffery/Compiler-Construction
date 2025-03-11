@@ -1,4 +1,5 @@
-Adadi Marqazi () {
+Adadi Marqazi ()
+{
     Adadi _num = 10 ::
     Ashriya num_ = -10.5E+12 ::
     Ashriya n_umber = +9.3 ::
@@ -7,9 +8,7 @@ Adadi Marqazi () {
     Mantiqi _flag = True ::
     Agar ( _flag )
     output<- "Ok" ::
-    5 + 5 ::
-    5 - 5 ::
-    Wagarna 
+    Wagarna
     input-> _num ::
     Wapas 0 ::
 }
