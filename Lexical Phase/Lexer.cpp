@@ -8,7 +8,8 @@
 #include <vector>
 using namespace std;
 
-int symbolTableID = 1, keywordTableID = 1, puncTableID = 1, literalID = 1;
+int symbolTableID = 1, keywordTableID = 1, puncTableID = 1, literalID = 1,
+    OperatorID = 1;
 
 vector<vector<int>> Transition;
 vector<vector<int>> Advance;
@@ -18,6 +19,7 @@ set<pair<string, int>> SymbolSet;
 set<pair<string, int>> KeywordSet;
 set<pair<string, int>> PunctuationSet;
 set<pair<string, int>> LiteralSet;
+set<pair<string, int>> OperatorSet;
 
 string removeTrailingSpaces(string str) {
   int i = 0;
@@ -49,8 +51,24 @@ bool isKeyword(string lexeme) {
   return false;
 }
 
+bool containsAlpha(string lexeme) {
+  for (auto c : lexeme)
+    if (isAlpha(c))
+      return true;
+  return false;
+}
+
+bool containsDigit(string lexeme) {
+  for (auto c : lexeme)
+    if (isDigit(c))
+      return true;
+  return false;
+}
+
 int getMapped(char c) {
-  if (isAlpha(c))
+  if (c == 'E')
+    return 6;
+  else if (isAlpha(c))
     return 0;
   else if (c == '_')
     return 1;
@@ -62,8 +80,6 @@ int getMapped(char c) {
     return 4;
   else if (c == '.')
     return 5;
-  else if (c == 'E')
-    return 6;
   else if (c == '{')
     return 7;
   else if (c == '[')
@@ -165,6 +181,35 @@ void toLiteralTable(string lexeme, vector<pair<string, int>> &Lexeme,
 
   LiteralTable.close();
 
+  return;
+}
+
+void toOperatorTable(string lexeme, vector<pair<string, int>> &Lexemes,
+                     int lineCount) {
+  auto it =
+      find_if(OperatorSet.begin(), OperatorSet.end(),
+              [&](const pair<string, int> &p) { return p.first == lexeme; });
+
+  if (it == OperatorSet.end())
+    OperatorSet.insert(make_pair(lexeme, OperatorID++));
+
+  ofstream OperatorTable("OperatorTable.txt", ios::app);
+
+  if (!OperatorTable.is_open()) {
+    cout << "Error: OperatorTable.txt not found\n";
+    return;
+  }
+
+  if (it == OperatorSet.end()) {
+    OperatorTable << "<" << to_string(OperatorID - 1) << ", " << lexeme << ">"
+                  << endl;
+    Lexemes.push_back(make_pair(
+        "<op" + to_string(OperatorID - 1) + ", " + lexeme + ">", lineCount));
+  } else
+    Lexemes.push_back(make_pair(
+        "<op" + to_string(it->second) + ", " + it->first + ">", lineCount));
+
+  OperatorTable.close();
   return;
 }
 
@@ -367,13 +412,36 @@ vector<pair<string, int>> getLexemes() {
       state = Transition[state][ch];
 
       if (state == -1) {
+        string lexeme = string(bufferPointer, forwardPointer);
 
         if (forwardPointer - bufferPointer == 0)
           toErrorTable(string(bufferPointer, forwardPointer + 1));
-        else if (!isKeyword(string(bufferPointer, forwardPointer)))
-          toLiteralTable(string(bufferPointer, forwardPointer), Lexemes,
+        else if (lexeme == "input" &&
+                 forwardPointer + 2 < &line[line.size() - 1] &&
+                 *(forwardPointer) == '-' && *(forwardPointer + 1) == '>') {
+          forwardPointer++;
+
+          toKeywordTable(string(bufferPointer, forwardPointer + 1), Lexemes,
                          lineCount);
-        else
+        } else if (lexeme == "output" &&
+                   forwardPointer + 2 < &line[line.size() - 1] &&
+                   *(forwardPointer) == '<' && *(forwardPointer + 1) == '-') {
+          forwardPointer++;
+
+          toKeywordTable(string(bufferPointer, forwardPointer + 1), Lexemes,
+                         lineCount);
+        } else if (!isKeyword(string(bufferPointer, forwardPointer))) {
+          string lexeme = string(bufferPointer, forwardPointer);
+          if (lexeme.length() <= 2 && !containsAlpha(lexeme) &&
+              !containsDigit(lexeme))
+            toOperatorTable(lexeme, Lexemes, lineCount);
+          else if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-' ||
+                   lexeme[0] == '\'' || lexeme[0] == '"' || isAlpha(lexeme[0]))
+            toLiteralTable(string(bufferPointer, forwardPointer), Lexemes,
+                           lineCount);
+          else
+            toOperatorTable(lexeme, Lexemes, lineCount);
+        } else
           toKeywordTable(string(bufferPointer, forwardPointer), Lexemes,
                          lineCount);
 
@@ -388,7 +456,10 @@ vector<pair<string, int>> getLexemes() {
 
         string lexeme = string(bufferPointer, forwardPointer);
 
-        if (!isKeyword(lexeme))
+        if (lexeme[0] == '"' || lexeme[0] == '\'' || lexeme[0] == '-' ||
+            lexeme[0] == '+' || isDigit(lexeme[0]) || isAlpha(lexeme[0]))
+          toLiteralTable(lexeme, Lexemes, lineCount);
+        else if (!isKeyword(lexeme))
           toPunctuationTable(lexeme, Lexemes, lineCount);
 
         bufferPointer = forwardPointer;
@@ -398,7 +469,8 @@ vector<pair<string, int>> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
         forwardPointer++;
 
-        if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-')
+        if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-' ||
+            lexeme[0] == '\'' || lexeme[0] == '"')
           toLiteralTable(lexeme, Lexemes, lineCount);
         else if (!isKeyword(lexeme))
           toSymbolTable(lexeme, Lexemes, lineCount);

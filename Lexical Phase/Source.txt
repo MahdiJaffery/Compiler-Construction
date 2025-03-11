@@ -7,6 +7,8 @@ Adadi Marqazi () {
     Mantiqi _flag = True ::
     Agar ( _flag )
     output<- "Ok" ::
+    5 + 5 ::
+    5 - 5 ::
     Wagarna 
     input-> _num ::
     Wapas 0 ::
