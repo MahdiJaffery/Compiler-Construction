@@ -474,7 +474,6 @@ vector<pair<string, int>> getLexemes() {
         state = 0;
 
         string lexeme = string(bufferPointer, forwardPointer);
-        forwardPointer++;
 
         if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-' ||
             lexeme[0] == '\'' || lexeme[0] == '"')

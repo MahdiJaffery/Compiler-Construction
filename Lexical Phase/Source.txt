@@ -1,7 +1,10 @@
 Adadi Marqazi ()
 {
+    Adadi Jaffery = -10.5476E-2341 ::
     Adadi _num = 10 ::
     Ashriya num_ = -10.5E+12 ::
+    Adadi 2num ::
+    Adadi num_2 = num_ + _num ::
     Ashriya n_umber = +9.3 ::
     Harf cou_se = "c" ::
     Matn course_ = "Compiler Construction" ::
