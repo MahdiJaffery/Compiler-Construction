@@ -15,11 +15,8 @@ vector<vector<int>> Transition;
 vector<vector<int>> Advance;
 vector<string> Keywords;
 
-set<pair<string, int>> SymbolSet;
-set<pair<string, int>> KeywordSet;
-set<pair<string, int>> PunctuationSet;
-set<pair<string, int>> LiteralSet;
-set<pair<string, int>> OperatorSet;
+set<pair<string, int>> SymbolSet, KeywordSet, PunctuationSet, LiteralSet,
+    OperatorSet;
 
 bool notInTables(string str) {
   auto it = find_if(SymbolSet.begin(), SymbolSet.end(),
@@ -443,7 +440,7 @@ vector<pair<string, int>> getLexemes() {
               !containsDigit(lexeme))
             toOperatorTable(lexeme, Lexemes, lineCount);
           else if (isDigit(lexeme[0]) || lexeme[0] == '+' || lexeme[0] == '-' ||
-                   lexeme[0] == '\'' || lexeme[0] == '"' || isAlpha(lexeme[0]))
+                   lexeme[0] == '\'' || lexeme[0] == '"')
             toLiteralTable(string(bufferPointer, forwardPointer), Lexemes,
                            lineCount);
           else if (isAlpha(lexeme[0]) &&
