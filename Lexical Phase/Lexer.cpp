@@ -217,7 +217,7 @@ void toOperatorTable(string lexeme, vector<pair<string, int>> &Lexemes,
   return;
 }
 
-void toErrorTable(string inValidLex) {
+void toErrorTable(string inValidLex, int lineCount) {
   if (isSpace(inValidLex))
     return;
 
@@ -230,7 +230,7 @@ void toErrorTable(string inValidLex) {
 
   if (!isSpace(inValidLex)) {
     inValidLex = removeTrailingSpaces(inValidLex);
-    ErrorTable << inValidLex << endl;
+    ErrorTable << inValidLex << " on line " << to_string(lineCount) << endl;
   }
 
   ErrorTable.close();
@@ -419,7 +419,7 @@ vector<pair<string, int>> getLexemes() {
         string lexeme = string(bufferPointer, forwardPointer);
 
         if (forwardPointer - bufferPointer == 0)
-          toErrorTable(string(bufferPointer, forwardPointer + 1));
+          toErrorTable(string(bufferPointer, forwardPointer + 1), lineCount);
         else if (lexeme == "input" &&
                  forwardPointer + 2 < &line[line.size() - 1] &&
                  *(forwardPointer) == '-' && *(forwardPointer + 1) == '>') {
@@ -445,7 +445,7 @@ vector<pair<string, int>> getLexemes() {
                            lineCount);
           else if (isAlpha(lexeme[0]) &&
                    notInTables(string(bufferPointer, forwardPointer)))
-            toErrorTable(string(bufferPointer, forwardPointer));
+            toErrorTable(string(bufferPointer, forwardPointer), lineCount);
           else
             toOperatorTable(lexeme, Lexemes, lineCount);
         } else
