@@ -1,6 +1,0 @@
-<k1, Adadi>	<s1, Marqazi_>	<p1, (>	<k1, Adadi>	<s2, m_ain>	<p2, )>	
-<p3, {>	
-<k1, Adadi>	<s3, _num>	<p4, ::>	
-<k1, Adadi>	<s4, _ass>	<p4, ::>	
-<k2, Harf>	<s5, cou_se>	<p4, ::>	
-<p5, }>	
