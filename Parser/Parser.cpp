@@ -136,8 +136,8 @@ void setTokenVector(vector<string> &Tokens, string filename) {
         if (endPos != string::npos)
           token = token.substr(0, endPos);
 
-        if (!token.empty() && token.back() == ',')
-          token = token.substr(0, token.size() - 1);
+        // if (!token.empty() && token.back() == ',')
+        //   token = token.substr(0, token.size() - 1);
 
         if (!token.empty())
           Tokens.push_back(token);
