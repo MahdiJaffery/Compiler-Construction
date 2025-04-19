@@ -1,4 +1,4 @@
-all: lexer parser
+all: cleanBefore lexer parser
 
 lexer:
 	g++ Lexer.cpp -o 1
@@ -10,5 +10,8 @@ parser:
 
 clean:
 	rm -f 1 2 *.out *Table.txt Tokens.txt
+
+cleanBefore:
+	rm -f *Table.txt Tokens.txt
 
 .PHONY: all lexer clean parser 
