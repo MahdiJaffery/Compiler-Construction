@@ -1,0 +1,12 @@
+Adadi _Marqazi ( Adadi _argc ){
+    Adadi _num ::
+    Harf _char ::
+    Matn _string ::
+    Mantiqi _bool ::
+
+    Agar ( _bool ) {
+        Adadi _numOne ::
+    } Wagarna {
+        Harf _charOne ::
+    }
+}
