@@ -1,5 +1,5 @@
 Adadi _Marqazi ( Adadi _argc ){
-    Adadi _num ::
+    Adadi _num := 5 ::
     Harf _char ::
     Matn _string ::
     Mantiqi _bool ::
