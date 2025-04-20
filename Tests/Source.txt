@@ -1,5 +1,6 @@
 Adadi _Marqazi ( Adadi _argc ){
-    Adadi _num := 5 ::
+    Adadi _num ::
+    _num := 590E123 ::
     Harf _char ::
     Matn _string ::
     Mantiqi _bool ::

@@ -64,23 +64,23 @@ void printParseTree(const shared_ptr<ParseTreeNode> &node,
   }
 }
 
-bool findInLiteralTable(string token) {
-  ifstream file("LiteralTable.txt");
-  if (!file) {
-    cout << "Error Opening Literal Table";
-    exit(1);
-  }
+// bool findInLiteralTable(string token) {
+//   ifstream file("LiteralTable.txt");
+//   if (!file) {
+//     cout << "Error Opening Literal Table";
+//     exit(1);
+//   }
 
-  string Line;
-  while (getline(file, Line)) {
-    stringstream ss(Line);
-    string checkToken;
-    while (ss >> checkToken)
-      if (checkToken.substr(checkToken.length() - 1) == token)
-        return true;
-  }
-  return false;
-}
+//   string Line;
+//   while (getline(file, Line)) {
+//     stringstream ss(Line);
+//     string checkToken;
+//     while (ss >> checkToken)
+//       if (checkToken.substr(checkToken.length() - 1) == token)
+//         return true;
+//   }
+//   return false;
+// }
 
 bool findInSymbolTable(string token) {
   ifstream file("SymbolTable.txt");
@@ -95,6 +95,26 @@ bool findInSymbolTable(string token) {
     string checkToken;
     while (ss >> checkToken)
       if (checkToken.substr(0, checkToken.length() - 1) == token)
+        return true;
+  }
+  return false;
+}
+
+bool findInLiteralTable(string token) {
+  ifstream file("LiteralTable.txt");
+  if (!file) {
+    cout << "Error opening LiteralTable";
+    exit(1);
+  }
+
+  string Line;
+  while (getline(file, Line)) {
+    stringstream ss(Line);
+    string checkToken;
+
+    while (ss >> checkToken)
+      if (checkToken.substr(0, checkToken.length() - 1) == token ||
+          checkToken.substr(0, checkToken.length() - 1) == "\"" + token + "\"")
         return true;
   }
   return false;
@@ -148,6 +168,10 @@ void setTokenVector(vector<string> &Tokens, string filename) {
 
 string getToken() {
   return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex] : "";
+}
+
+string peek() {
+  return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex + 1] : "";
 }
 
 void Advance() {
@@ -542,8 +566,13 @@ bool StmtList(shared_ptr<ParseTreeNode> &node) {
 
 bool Expr(shared_ptr<ParseTreeNode> &node) {
   string currentToken = getToken();
-  if (!findInSymbolTable(currentToken))
+  if (!findInSymbolTable(currentToken)) {
+    if (findInLiteralTable(currentToken)) {
+      Advance();
+      return true;
+    }
     return false;
+  }
   node->addChild(make_shared<ParseTreeNode>("Symbol: " + currentToken));
   Advance();
 
@@ -560,7 +589,7 @@ bool Expr_Prime(shared_ptr<ParseTreeNode> &node) {
     node->addChild(make_shared<ParseTreeNode>(":="));
     Advance();
 
-    auto exprNode = make_shared<ParseTreeNode>("Expr");
+    auto exprNode = make_shared<ParseTreeNode>("Expr: " + getToken());
     if (!Expr(exprNode))
       return false;
     node->addChild(exprNode);
