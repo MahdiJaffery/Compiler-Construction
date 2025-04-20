@@ -9,7 +9,7 @@ parser:
 	./2
 
 clean:
-	rm -f 1 2 *.out *Table.txt Tokens.txt
+	rm -f 1 2 *.out *Table.txt Tokens.txt Lexer Parser
 
 cleanBefore:
 	rm -f *Table.txt Tokens.txt
