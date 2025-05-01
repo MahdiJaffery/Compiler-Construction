@@ -5,6 +5,8 @@ Adadi _Marqazi ( Adadi _argc ){
     Matn _string ::
     Mantiqi _bool ::
 
+    _bool := true ::
+
     Agar ( _bool ) {
         Adadi _numOne ::
     } Wagarna {
