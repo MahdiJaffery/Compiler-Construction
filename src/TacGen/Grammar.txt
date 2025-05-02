@@ -1,0 +1,21 @@
+Stmt → WhileStmt | Expr ∷ | IfStmt | CompStmt | Declaration | ∷
+Declaration → Type IdentList ∷
+Type → Adadi | Ashriya | Harf | Matn | Mantiqi
+IdentList → identifier IdentList'
+IdentList' → , IdentList | ε
+
+WhileStmt → while ( Expr ) Stmt
+IfStmt → Agar ( Expr ) Stmt ElsePart
+ElsePart → Wagarna Stmt | ε
+CompStmt → { StmtList }
+StmtList → Stmt StmtList | ε
+
+Expr → identifier := Expr | Rvalue
+Rvalue → Mag Rvalue'
+Rvalue' → Compare Mag Rvalue' | ε
+Compare → == | < | > | <= | >= | != | <>
+Mag → Term Mag'
+Mag' → + Term Mag' | - Term Mag' | ε
+Term → Factor Term'
+Term' → * Factor Term' | / Factor Term' | ε
+Factor → ( Expr ) | identifier | number
