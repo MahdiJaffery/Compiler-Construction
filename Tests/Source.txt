@@ -1,15 +1,2 @@
-Adadi _Marqazi ( Adadi _argc ){
-    Adadi _num ::
-    _num := 590E123 ::
-    Harf _char ::
-    Matn _string ::
-    Mantiqi _bool ::
-
-    _bool := true ::
-
-    Agar ( _bool ) {
-        Adadi _numOne ::
-    } Wagarna {
-        Harf _charOne ::
-    }
-}
+Adadi _num ::
+_num := 5 ::

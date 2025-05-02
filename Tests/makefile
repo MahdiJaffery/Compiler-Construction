@@ -13,7 +13,7 @@ tac:
 	./3
 
 clean:
-	rm -f 1 2 *.out *Table.txt Tokens.txt Lexer Parser
+	rm -f 1 2 3 *.out *Table.txt Tokens.txt Lexer Parser TacGen
 
 cleanBefore:
 	rm -f *Table.txt Tokens.txt

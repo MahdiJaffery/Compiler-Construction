@@ -124,6 +124,8 @@ bool Term();
 bool Term_Prime();
 bool Factor();
 
+bool ThreeAddressCode() { return Stmt(); }
+
 bool Stmt() {
   if (WhileStmt())
     return true;
@@ -161,7 +163,7 @@ bool Declaration() {
   if (!Type())
     return false;
 
-  if (!IdentList)
+  if (!IdentList())
     return false;
 
   if (getToken() != "::")
@@ -402,8 +404,9 @@ bool Factor() {
 int main() {
   setTokenVector(Tokens, "Tokens.txt");
 
-  for (auto str : Tokens)
-    cout << str << endl;
-
+  if (ThreeAddressCode())
+    cout << "Successful\n";
+  else
+    cout << "Failed\n";
   return 0;
 }
