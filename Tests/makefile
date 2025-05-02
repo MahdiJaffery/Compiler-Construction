@@ -1,4 +1,4 @@
-all: cleanBefore lexer parser
+all: cleanBefore lexer parser tac
 
 lexer:
 	g++ Lexer.cpp -o 1
@@ -7,6 +7,10 @@ lexer:
 parser:
 	g++ Parser.cpp -o 2
 	./2
+
+tac:
+	g++ TacGen.cpp -o 3
+	./3
 
 clean:
 	rm -f 1 2 *.out *Table.txt Tokens.txt Lexer Parser
