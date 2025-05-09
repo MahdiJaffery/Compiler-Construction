@@ -1,10 +1,14 @@
-Ashriya _y ::
-Adadi _x ::
-_x := 10 ::
-while ( _x := 0 ) {
-  _y := 5 / 2 ::
-  _x := 66 - 1 ::
-}
-Agar ( _y := 0 ) {
-  _x := 100 ::
-}
+Ashriya _total :: 
+Adadi _count :: 
+Adadi _max :: 
+_total := 0.0 :: 
+_count := 1 :: 
+_max := 10 :: 
+while ( _count := 23 ) { 
+  _total := 23 + 67 :: 
+  Agar ( _total := 20 ) { 
+    _count := 23 :: 
+  } Wagarna { 
+    _count := 1123E23 :: 
+  } :: 
+} :: 
