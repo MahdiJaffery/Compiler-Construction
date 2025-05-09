@@ -1,8 +1,10 @@
-Adadi _num ::
-_num := 5 ::
-
-while ( _num := 5 )
-    _num := 6 ::
-
-while ( _num2 := 24 )
-    _num := 1 ::
+Ashriya _y ::
+Adadi _x ::
+_x := 10 ::
+while ( _x := 0 ) {
+  _y := 5 / 2 ::
+  _x := 66 - 1 ::
+}
+Agar ( _y := 0 ) {
+  _x := 100 ::
+}

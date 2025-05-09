@@ -7,494 +7,643 @@ using namespace std;
 
 struct Rule
 {
-  string val, relop, trueLabel, falseLabel, label;
+	//	Compare
+	string relop;
 
-  Rule() : val(""), relop(""), trueLabel(""), falseLabel(""), label("") {}
+	//	General Values
+	string val;
+
+	//	If-Else
+	string trueLabel, falseLabel, label;
+
+	//	Types
+	string type;
+
+	//	While Loop
+	string start, looplabel, end;
+
+	Rule() : relop(""), val(""), trueLabel(""), falseLabel(""), label(""), type(""), start(""), looplabel(""), end("") {}
 };
 
 ofstream TacFile("Tac.txt", ios::app);
 
 vector<string> Tokens;
-int currentIndex = 0;
+int currentIndex = 0, tempIndex = 1, labelValue = 1;
+
+void gen(string tac)
+{
+	TacFile << tac << endl;
+	return;
+}
 
 bool findInSymbolTable(string token)
 {
-  ifstream file("SymbolTable.txt");
-  if (!file)
-  {
-    cout << "Error opening SymbolTable";
-    exit(1);
-  }
+	ifstream file("SymbolTable.txt");
+	if (!file)
+	{
+		cout << "Error opening SymbolTable";
+		exit(1);
+	}
 
-  string Line;
-  while (getline(file, Line))
-  {
-    stringstream ss(Line);
-    string checkToken;
-    while (ss >> checkToken)
-      if (checkToken.substr(0, checkToken.length() - 1) == token)
-        return true;
-  }
-  return false;
+	string Line;
+	while (getline(file, Line))
+	{
+		stringstream ss(Line);
+		string checkToken;
+		while (ss >> checkToken)
+			if (checkToken.substr(0, checkToken.length() - 1) == token)
+				return true;
+	}
+	return false;
 }
 
 bool findInLiteralTable(string token)
 {
-  ifstream file("LiteralTable.txt");
-  if (!file)
-  {
-    cout << "Error opening LiteralTable";
-    exit(1);
-  }
+	ifstream file("LiteralTable.txt");
+	if (!file)
+	{
+		cout << "Error opening LiteralTable";
+		exit(1);
+	}
 
-  string Line;
-  while (getline(file, Line))
-  {
-    stringstream ss(Line);
-    string checkToken;
+	string Line;
+	while (getline(file, Line))
+	{
+		stringstream ss(Line);
+		string checkToken;
 
-    while (ss >> checkToken)
-      if (checkToken.substr(0, checkToken.length() - 1) == token ||
-          checkToken.substr(0, checkToken.length() - 1) == "\"" + token + "\"")
-        return true;
-  }
-  return false;
+		while (ss >> checkToken)
+			if (checkToken.substr(0, checkToken.length() - 1) == token ||
+				checkToken.substr(0, checkToken.length() - 1) == "\"" + token + "\"")
+				return true;
+	}
+	return false;
 }
 
 void setTokenVector(vector<string> &Tokens, string filename)
 {
-  ifstream file(filename);
-  string line;
+	ifstream file(filename);
+	string line;
 
-  while (getline(file, line))
-  {
-    stringstream ss(line);
-    string token;
-    string quotedToken;
-    bool inQuotes = false;
+	while (getline(file, line))
+	{
+		stringstream ss(line);
+		string token;
+		string quotedToken;
+		bool inQuotes = false;
 
-    while (ss >> token)
-    {
-      if (token[0] == '<')
-        continue;
+		while (ss >> token)
+		{
+			if (token[0] == '<')
+				continue;
 
-      if (token.find('\"') != string::npos)
-      {
-        if (!inQuotes)
-        {
-          inQuotes = true;
-          quotedToken = token.substr(token.find('\"') + 1);
+			if (token.find('\"') != string::npos)
+			{
+				if (!inQuotes)
+				{
+					inQuotes = true;
+					quotedToken = token.substr(token.find('\"') + 1);
 
-          if (token.rfind('\"') != token.find('\"'))
-          {
-            quotedToken = quotedToken.substr(0, quotedToken.rfind('\"'));
-            Tokens.push_back(quotedToken);
-            inQuotes = false;
-          }
-        }
-        else
-        {
-          quotedToken += " " + token.substr(0, token.rfind('\"'));
-          Tokens.push_back(quotedToken);
-          inQuotes = false;
-        }
-      }
-      else if (inQuotes)
-        quotedToken += " " + token;
-      else
-      {
-        size_t endPos = token.find('>');
-        if (endPos != string::npos)
-          token = token.substr(0, endPos);
+					if (token.rfind('\"') != token.find('\"'))
+					{
+						quotedToken = quotedToken.substr(0, quotedToken.rfind('\"'));
+						Tokens.push_back(quotedToken);
+						inQuotes = false;
+					}
+				}
+				else
+				{
+					quotedToken += " " + token.substr(0, token.rfind('\"'));
+					Tokens.push_back(quotedToken);
+					inQuotes = false;
+				}
+			}
+			else if (inQuotes)
+				quotedToken += " " + token;
+			else
+			{
+				size_t endPos = token.find('>');
+				if (endPos != string::npos)
+					token = token.substr(0, endPos);
 
-        if (!token.empty() && token.back() == ',')
-          token = token.substr(0, token.size() - 1);
+				if (!token.empty() && token.back() == ',')
+					token = token.substr(0, token.size() - 1);
 
-        if (!token.empty())
-          Tokens.push_back(token);
-      }
-    }
-  }
+				if (!token.empty())
+					Tokens.push_back(token);
+			}
+		}
+	}
 }
 
 string getToken()
 {
-  return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex] : "";
+	return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex] : "";
 }
 
 string peek()
 {
-  return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex + 1] : "";
+	return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex + 1] : "";
 }
 
 void Advance()
 {
-  if (currentIndex <= Tokens.size() - 1)
-    currentIndex++;
-  else
-  {
-    cout << "No more Tokens in file\n\n";
-    exit(1);
-  }
+	if (currentIndex <= Tokens.size() - 1)
+		currentIndex++;
+	else
+	{
+		cout << "No more Tokens in file\n\n";
+		exit(1);
+	}
 }
 
-bool Stmt();
-bool Declaration();
-bool Type();
-bool IdentList();
-bool IdentList_Prime();
-bool WhileStmt();
-bool IfStmt();
-bool ElsePart();
-bool CompStmt();
-bool StmtList();
-bool Expr();
-bool Rvalue();
-bool Rvalue_Prime();
-bool Compare();
-bool Mag();
-bool Mag_Prime();
-bool Term();
-bool Term_Prime();
-bool Factor();
-;
+bool Stmt(Rule &myRule);
+bool Declaration(Rule &myRule);
+bool Type(Rule &myRule);
+bool IdentList(Rule &myRule);
+bool IdentList_Prime(Rule &myRule);
+bool WhileStmt(Rule &myRule);
+bool IfStmt(Rule &myRule);
+bool ElsePart(Rule &myRule);
+bool CompStmt(Rule &myRule);
+bool StmtList(Rule &myRule);
+bool Expr(Rule &myRule);
+bool Rvalue(Rule &myRule);
+bool Rvalue_Prime(Rule &myRule);
+bool Compare(Rule &myRule);
+bool Mag(Rule &myRule);
+bool Mag_Prime(Rule &myRule);
+bool Term(Rule &myRule);
+bool Term_Prime(Rule &myRule);
+bool Factor(Rule &myRule);
 
 bool ThreAddressCode(vector<Rule> &RuleList)
 {
-  bool flag = true;
+	bool flag = true;
 
-  while (flag && currentIndex < Tokens.size())
-    flag = flag && Stmt(RuleList);
+	while (flag && currentIndex < Tokens.size() - 1)
+		flag = flag && Stmt(RuleList[0]);
 
-  return flag;
+	return flag;
 }
 
-bool Stmt(vector<Rule> &RuleList)
+bool Stmt(Rule &myRule)
 {
-  if (WhileStmt())
-    return true;
+	Rule WhileRule;
+	if (WhileStmt(WhileRule))
+		return true;
 
-  if (Expr())
-    if (getToken() != "::")
-      return false;
-    else
-    {
-      Advance();
-      return true;
-    }
+	Rule ExprRule;
+	if (Expr(ExprRule))
+		if (getToken() != "::")
+			return false;
+		else
+		{
+			Advance();
 
-  if (IfStmt())
-    return true;
+			myRule.val = ExprRule.val;
 
-  if (CompStmt())
-    return true;
+			gen(myRule.val);
+			return true;
+		}
 
-  if (Declaration())
-    return true;
+	Rule IfRule;
+	if (IfStmt(IfRule))
+		return true;
 
-  if (getToken() != "::")
-    return false;
+	Rule CompStmtRule;
+	if (CompStmt(CompStmtRule))
+	{
+		myRule.val = CompStmtRule.val;
+		return true;
+	}
 
-  Advance();
-  return true;
+	Rule DeclarationRule;
+	if (Declaration(DeclarationRule))
+		return true;
+
+	if (getToken() != "::")
+		return false;
+
+	Advance();
+	return true;
 }
 
-bool Declaration()
+bool Declaration(Rule &myRule)
 {
-  if (!Type())
-    return false;
+	Rule TypeRule;
+	if (!Type(TypeRule))
+		return false;
 
-  if (!IdentList())
-    return false;
+	Rule IdentListRule;
+	if (!IdentList(IdentListRule))
+		return false;
 
-  if (getToken() != "::")
-    return false;
+	if (getToken() != "::")
+		return false;
 
-  Advance();
-  return true;
+	Advance();
+
+	gen("Declare " + IdentListRule.val + " as " + TypeRule.type);
+
+	return true;
 }
 
-bool Type()
+bool Type(Rule &myRule)
 {
-  string tok = getToken();
+	string tok = getToken();
 
-  if (tok == "Adadi" || tok == "Ashriya" || tok == "Mantiqi" || tok == "Matn" || tok == "Harf")
-  {
-    Advance();
-    return true;
-  }
+	if (tok == "Adadi")
+		myRule.type = "int";
+	else if (tok == "Ashriya")
+		myRule.type = "float";
+	else if (tok == "Mantiqi")
+		myRule.type = "bool";
+	else if (tok == "Matn")
+		myRule.type = "string";
+	else if (tok == "Harf")
+		myRule.type = "char";
+	else
+		return false;
 
-  return false;
+	Advance();
+	return true;
 }
 
-bool IdentList()
+bool IdentList(Rule &myRule)
 {
-  string currentToken = getToken();
+	string currentToken = getToken();
 
-  if (!findInSymbolTable(currentToken))
-    return false;
+	if (!findInSymbolTable(currentToken))
+		return false;
 
-  Advance();
-  if (!IdentList_Prime())
-    return false;
+	Advance();
 
-  return true;
+	myRule.val += currentToken;
+
+	Rule IdentList_Prime_Rule;
+	IdentList_Prime_Rule.val += myRule.val;
+
+	if (!IdentList_Prime(myRule))
+		return false;
+
+	return true;
 }
 
-bool IdentList_Prime()
+bool IdentList_Prime(Rule &myRule)
 {
-  if (getToken() == ",")
-  {
-    Advance();
+	if (getToken() == ",")
+	{
+		Advance();
 
-    if (!IdentList())
-      return false;
-  }
-  return true;
+		myRule.val += ", ";
+
+		Rule IdentListRule;
+		if (!IdentList(IdentListRule))
+			return false;
+
+		myRule.val += IdentListRule.val;
+	}
+	return true;
 }
 
-bool WhileStmt()
+bool WhileStmt(Rule &myRule)
 {
-  if (getToken() != "while")
-    return false;
+	if (getToken() != "while")
+		return false;
 
-  Advance();
-  if (getToken() != "(")
-    return false;
+	Advance();
+	if (getToken() != "(")
+		return false;
 
-  Advance();
-  if (!Expr())
-    return false;
+	Advance();
+	Rule ExprRule;
+	if (!Expr(ExprRule))
+		return false;
 
-  if (getToken() != ")")
-    return false;
-  Advance();
+	if (getToken() != ")")
+		return false;
+	Advance();
 
-  if (!Stmt())
-    return false;
+	Rule StmtRule;
+	if (!Stmt(StmtRule))
+		return false;
 
-  return true;
+	myRule.start = "L" + to_string(labelValue++);
+	myRule.looplabel = "L" + to_string(labelValue++);
+	myRule.end = "L" + to_string(labelValue++);
+
+	// gen(myRule.start + ":");
+	gen("if " + ExprRule.val + " goto " + myRule.looplabel);
+
+	gen("goto " + myRule.end);
+	gen(myRule.looplabel + ":");
+
+	gen(StmtRule.val);
+
+	gen(myRule.end + ":");
+
+	return true;
 }
 
-bool IfStmt()
+bool IfStmt(Rule &myRule)
 {
-  if (getToken() != "Agar")
-    return false;
+	if (getToken() != "Agar")
+		return false;
 
-  Advance();
-  if (getToken() != "(")
-    return false;
+	Advance();
+	if (getToken() != "(")
+		return false;
 
-  Advance();
-  if (!Expr())
-    return false;
+	Advance();
 
-  if (getToken() != ")")
-    return false;
+	Rule ExprRule;
+	if (!Expr(ExprRule))
+		return false;
 
-  Advance();
+	if (getToken() != ")")
+		return false;
 
-  if (!Stmt())
-    return false;
+	Advance();
 
-  if (!ElsePart())
-    return false;
+	Rule StmtRule;
+	if (!Stmt(StmtRule))
+		return false;
 
-  return true;
+	Rule ElsePartRule;
+	if (!ElsePart(ElsePartRule))
+		return false;
+
+	myRule.trueLabel = to_string(labelValue++);
+	myRule.falseLabel = to_string(labelValue++);
+
+	gen("if " + ExprRule.val + " goto " + myRule.trueLabel);
+	gen(ElsePartRule.val);
+
+	gen("goto " + myRule.falseLabel);
+
+	gen(ElsePartRule.val + " " + myRule.trueLabel + ":");
+
+	gen(StmtRule.val);
+
+	gen(myRule.falseLabel + ":");
+
+	return true;
 }
 
-bool ElsePart()
+bool ElsePart(Rule &myRule)
 {
-  if (getToken() == "Wagarna")
-  {
-    Advance();
+	if (getToken() == "Wagarna")
+	{
+		Advance();
 
-    if (!Stmt())
-      return false;
-  }
-  return true;
+		Rule StmtRule;
+		if (!Stmt(StmtRule))
+			return false;
+
+		myRule.val = StmtRule.val;
+	}
+	return true;
 }
 
-bool CompStmt()
+bool CompStmt(Rule &myRule)
 {
-  if (getToken() != "{")
-    return false;
+	if (getToken() != "{")
+		return false;
 
-  Advance();
-  if (!StmtList())
-    return false;
+	Advance();
 
-  if (getToken() != "}")
-    return false;
+	Rule StmtListRule;
+	if (!StmtList(StmtListRule))
+		return false;
 
-  return true;
+	if (getToken() != "}")
+		return false;
+	Advance();
+
+	myRule.val = StmtListRule.val;
+
+	return true;
 }
 
-bool StmtList()
+bool StmtList(Rule &myRule)
 {
-  if (Stmt())
-  {
-    if (!StmtList())
-      return false;
-  }
-  return true;
+	Rule StmtRule;
+	if (Stmt(StmtRule))
+	{
+		Rule StmtListRule;
+		StmtListRule.val += StmtRule.val;
+
+		if (!StmtList(StmtListRule))
+			return false;
+
+		myRule.val += "\n" + StmtListRule.val;
+	}
+	return true;
 }
 
-bool Expr()
+bool Expr(Rule &myRule)
 {
-  if (findInSymbolTable(getToken()))
-  {
+	if (findInSymbolTable(getToken()))
+	{
+		Advance();
+		if (getToken() != ":=")
+			return false;
 
-    Advance();
-    if (getToken() != ":=")
-      return false;
+		Advance();
 
-    Advance();
-    if (!Expr())
-      return false;
-    return true;
-  }
-  else
-    return Rvalue();
+		Rule ExprRule;
+		if (!Expr(ExprRule))
+			return false;
+
+		myRule.val = "T" + to_string(tempIndex++) + " = " + ExprRule.val;
+
+		return true;
+	}
+	else
+	{
+		Rule RvalueRule;
+		if (!Rvalue(RvalueRule))
+			return false;
+
+		myRule.val = RvalueRule.val;
+		return true;
+	}
 }
 
-bool Rvalue()
+bool Rvalue(Rule &myRule)
 {
-  if (!Mag())
-    return false;
+	Rule MagRule;
+	if (!Mag(MagRule))
+		return false;
 
-  if (!Rvalue_Prime())
-    return false;
+	Rule Rvalue_Prime_Rule;
+	if (!Rvalue_Prime(Rvalue_Prime_Rule))
+		return false;
 
-  return true;
+	myRule.val = MagRule.val + Rvalue_Prime_Rule.val;
+	return true;
 }
 
-bool Rvalue_Prime()
+bool Rvalue_Prime(Rule &myRule)
 {
-  if (Compare())
-  {
-    if (!Mag())
-      return false;
+	Rule CompareRule;
+	if (Compare(CompareRule))
+	{
+		Rule MagRule;
+		if (!Mag(MagRule))
+			return false;
 
-    if (!Rvalue_Prime())
-      return false;
-  }
-  return true;
+		Rule Rvalue_Prime_Rule;
+		if (!Rvalue_Prime(Rvalue_Prime_Rule))
+			return false;
+
+		myRule.val = CompareRule.relop + MagRule.val + Rvalue_Prime_Rule.val;
+	}
+	return true;
 }
 
-bool Compare()
+bool Compare(Rule &myRule)
 {
-  string tok = getToken();
+	string tok = getToken();
 
-  if (tok == "==" || tok == "<" || tok == ">" || tok == "<=" || tok == ">=" || tok == "!=" || tok == "<>")
-  {
-    Advance();
-    return true;
-  }
-  return false;
+	if (tok == "==" || tok == "<" || tok == ">" || tok == "<=" || tok == ">=" || tok == "!=" || tok == "<>")
+	{
+		if (tok == "<>")
+			myRule.relop = "!=";
+		else
+			myRule.relop = tok;
+
+		Advance();
+		return true;
+	}
+	return false;
 }
 
-bool Mag()
+bool Mag(Rule &myRule)
 {
-  if (!Term())
-    return false;
+	Rule TermRule;
+	if (!Term(TermRule))
+		return false;
 
-  if (!Mag_Prime())
-    return false;
+	Rule Mag_Prime_Rule;
+	Mag_Prime_Rule.val = TermRule.val;
+	if (!Mag_Prime(Mag_Prime_Rule))
+		return false;
 
-  return true;
+	myRule.val = Mag_Prime_Rule.val;
+	return true;
 }
 
-bool Mag_Prime()
+bool Mag_Prime(Rule &myRule)
 {
-  string tok = getToken();
+	string tok = getToken();
 
-  if (tok == "+" || tok == "-")
-  {
-    Advance();
+	if (tok == "+" || tok == "-")
+	{
+		Advance();
 
-    if (!Term())
-      return false;
+		Rule TermRule;
+		if (!Term(TermRule))
+			return false;
 
-    if (!Mag_Prime())
-      return false;
-  }
-  return true;
+		Rule Mag_Prime_Rule;
+		if (!Mag_Prime(Mag_Prime_Rule))
+			return false;
+
+		myRule.val += tok + TermRule.val + Mag_Prime_Rule.val;
+	}
+	return true;
 }
 
-bool Term()
+bool Term(Rule &myRule)
 {
-  if (!Factor())
-    return false;
+	Rule FactorRule;
+	if (!Factor(FactorRule))
+		return false;
 
-  if (!Term_Prime())
-    return false;
+	Rule Term_Prime_Rule;
+	if (!Term_Prime(Term_Prime_Rule))
+		return false;
 
-  return true;
+	myRule.val = FactorRule.val + Term_Prime_Rule.val;
+	return true;
 }
 
-bool Term_Prime()
+bool Term_Prime(Rule &myRule)
 {
-  string tok = getToken();
+	string tok = getToken();
 
-  if (tok == "*" || tok == "/")
-  {
-    Advance();
+	if (tok == "*" || tok == "/")
+	{
+		Advance();
 
-    if (!Factor())
-      return false;
+		Rule FactorRule;
+		if (!Factor(FactorRule))
+			return false;
 
-    if (!Term_Prime())
-      return false;
-  }
-  return true;
+		Rule Term_Prime_Rule;
+		if (!Term_Prime(Term_Prime_Rule))
+			return false;
+
+		myRule.val += tok + FactorRule.val + Term_Prime_Rule.val;
+	}
+	return true;
 }
 
-bool Factor()
+bool Factor(Rule &myRule)
 {
-  if (getToken() == "(")
-  {
-    Advance();
+	Rule ExprRule;
+	if (getToken() == "(")
+	{
+		Advance();
 
-    if (!Expr())
-      return false;
+		if (!Expr(ExprRule))
+			return false;
 
-    if (getToken() != ")")
-      return false;
+		if (getToken() != ")")
+			return false;
 
-    Advance();
-    return true;
-  }
-  else if (findInSymbolTable(getToken()))
-  {
-    Advance();
-    return true;
-  }
-  else if (findInLiteralTable(getToken()))
-  {
-    Advance();
-    return true;
-  }
+		myRule.val = ExprRule.val;
 
-  return false;
+		Advance();
+		return true;
+	}
+	else if (findInSymbolTable(getToken()))
+	{
+		myRule.val = getToken();
+		Advance();
+		return true;
+	}
+	else if (findInLiteralTable(getToken()))
+	{
+		myRule.val = getToken();
+		Advance();
+		return true;
+	}
+
+	return false;
 }
 
 int main()
 {
-  vector<Rule> RuleList(19);
+	vector<Rule> RuleList(19);
 
-  if (!TacFile)
-  {
-    printf("Failed to Open TacGen.txt\n");
-    return 1;
-  }
+	if (!TacFile)
+	{
+		printf("Failed to Open TacGen.txt\n");
+		return 1;
+	}
 
-  setTokenVector(Tokens, "Tokens.txt");
+	setTokenVector(Tokens, "Tokens.txt");
 
-  if (ThreAddressCode(RuleList))
-    cout << "Successful\n";
-  else
-    cout << "Failed\n";
+	for (auto tok : Tokens)
+		cout << tok << endl;
 
-  return 0;
+	if (ThreAddressCode(RuleList))
+		cout << "Successful\n";
+	else
+		cout << "Failed\n";
+
+	return 0;
 }
