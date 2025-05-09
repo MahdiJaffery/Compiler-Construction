@@ -1,8 +1,14 @@
-Adadi _num ::
-_num := 5 ::
-
-while ( _num := 5 )
-    _num := 6 ::
-
-while ( _num2 := 24 )
-    _num := 1 ::
+Ashriya _total :: 
+Adadi _count :: 
+Adadi _max :: 
+_total := 0.0 :: 
+_count := 1 :: 
+_max := 10 :: 
+while ( _count := 23 ) { 
+  _total := 23 + 67 :: 
+  Agar ( _total := 20 ) { 
+    _count := 23 :: 
+  } Wagarna { 
+    _count := 1123E23 :: 
+  } :: 
+} :: 
