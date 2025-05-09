@@ -8,7 +8,7 @@ using namespace std;
 struct Node
 {
 };
-
+//;
 ofstream TacFile("Tac.txt", ios::app);
 
 vector<string> Tokens;
