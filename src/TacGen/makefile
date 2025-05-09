@@ -5,7 +5,7 @@ tac:
 	./1
 
 clean:
-	rm -f 1 2 Lexer Parser TacGen
+	rm -f 1 2 Lexer Parser TacGen Tac.txt
 
 clear:
 	clear

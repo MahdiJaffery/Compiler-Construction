@@ -1,22 +1,34 @@
-#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <vector>
+#include <fstream>
+
 using namespace std;
 
-int currentIndex = 0;
-vector<string> Tokens;
+struct Rule
+{
+  string val, relop, trueLabel, falseLabel, label;
 
-bool findInSymbolTable(string token) {
+  Rule() : val(""), relop(""), trueLabel(""), falseLabel(""), label("") {}
+};
+
+ofstream TacFile("Tac.txt", ios::app);
+
+vector<string> Tokens;
+int currentIndex = 0;
+
+bool findInSymbolTable(string token)
+{
   ifstream file("SymbolTable.txt");
-  if (!file) {
+  if (!file)
+  {
     cout << "Error opening SymbolTable";
     exit(1);
   }
 
   string Line;
-  while (getline(file, Line)) {
+  while (getline(file, Line))
+  {
     stringstream ss(Line);
     string checkToken;
     while (ss >> checkToken)
@@ -26,15 +38,18 @@ bool findInSymbolTable(string token) {
   return false;
 }
 
-bool findInLiteralTable(string token) {
+bool findInLiteralTable(string token)
+{
   ifstream file("LiteralTable.txt");
-  if (!file) {
+  if (!file)
+  {
     cout << "Error opening LiteralTable";
     exit(1);
   }
 
   string Line;
-  while (getline(file, Line)) {
+  while (getline(file, Line))
+  {
     stringstream ss(Line);
     string checkToken;
 
@@ -46,41 +61,54 @@ bool findInLiteralTable(string token) {
   return false;
 }
 
-void setTokenVector(vector<string> &Tokens, string filename) {
+void setTokenVector(vector<string> &Tokens, string filename)
+{
   ifstream file(filename);
   string line;
 
-  while (getline(file, line)) {
+  while (getline(file, line))
+  {
     stringstream ss(line);
     string token;
     string quotedToken;
     bool inQuotes = false;
 
-    while (ss >> token) {
+    while (ss >> token)
+    {
       if (token[0] == '<')
         continue;
 
-      if (token.find('\"') != string::npos) {
-        if (!inQuotes) {
+      if (token.find('\"') != string::npos)
+      {
+        if (!inQuotes)
+        {
           inQuotes = true;
           quotedToken = token.substr(token.find('\"') + 1);
 
-          if (token.rfind('\"') != token.find('\"')) {
+          if (token.rfind('\"') != token.find('\"'))
+          {
             quotedToken = quotedToken.substr(0, quotedToken.rfind('\"'));
             Tokens.push_back(quotedToken);
             inQuotes = false;
           }
-        } else {
+        }
+        else
+        {
           quotedToken += " " + token.substr(0, token.rfind('\"'));
           Tokens.push_back(quotedToken);
           inQuotes = false;
         }
-      } else if (inQuotes)
+      }
+      else if (inQuotes)
         quotedToken += " " + token;
-      else {
+      else
+      {
         size_t endPos = token.find('>');
         if (endPos != string::npos)
           token = token.substr(0, endPos);
+
+        if (!token.empty() && token.back() == ',')
+          token = token.substr(0, token.size() - 1);
 
         if (!token.empty())
           Tokens.push_back(token);
@@ -89,14 +117,22 @@ void setTokenVector(vector<string> &Tokens, string filename) {
   }
 }
 
-string getToken() {
+string getToken()
+{
   return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex] : "";
 }
 
-void Advance() {
+string peek()
+{
+  return currentIndex <= Tokens.size() - 1 ? Tokens[currentIndex + 1] : "";
+}
+
+void Advance()
+{
   if (currentIndex <= Tokens.size() - 1)
     currentIndex++;
-  else {
+  else
+  {
     cout << "No more Tokens in file\n\n";
     exit(1);
   }
@@ -107,13 +143,11 @@ bool Declaration();
 bool Type();
 bool IdentList();
 bool IdentList_Prime();
-
 bool WhileStmt();
 bool IfStmt();
 bool ElsePart();
 bool CompStmt();
 bool StmtList();
-
 bool Expr();
 bool Rvalue();
 bool Rvalue_Prime();
@@ -124,21 +158,29 @@ bool Term();
 bool Term_Prime();
 bool Factor();
 
-bool ThreeAddressCode() { return Stmt(); }
+bool ThreAddressCode(vector<Rule> &RuleList)
+{
+  bool flag = true;
 
-bool Stmt() {
+  while (flag && currentIndex < Tokens.size())
+    flag = flag && Stmt(RuleList);
+
+  return flag;
+}
+
+bool Stmt(vector<Rule> &RuleList)
+{
   if (WhileStmt())
     return true;
 
-  if (Expr()) {
-    string currentToken = getToken();
-
-    if (currentToken != "::")
+  if (Expr())
+    if (getToken() != "::")
       return false;
-
-    Advance();
-    return true;
-  }
+    else
+    {
+      Advance();
+      return true;
+    }
 
   if (IfStmt())
     return true;
@@ -149,17 +191,15 @@ bool Stmt() {
   if (Declaration())
     return true;
 
-  string currentToken = getToken();
+  if (getToken() != "::")
+    return false;
 
-  if (currentToken == "::") {
-    Advance();
-    return true;
-  }
-
-  return false;
+  Advance();
+  return true;
 }
 
-bool Declaration() {
+bool Declaration()
+{
   if (!Type())
     return false;
 
@@ -173,31 +213,37 @@ bool Declaration() {
   return true;
 }
 
-bool Type() {
-  string currentToken = getToken();
+bool Type()
+{
+  string tok = getToken();
 
-  if (currentToken == "Adadi" || currentToken == "Ashriya" ||
-      currentToken == "Harf" || currentToken == "Matn" ||
-      currentToken == "Mantiqi") {
+  if (tok == "Adadi" || tok == "Ashriya" || tok == "Mantiqi" || tok == "Matn" || tok == "Harf")
+  {
     Advance();
     return true;
   }
+
   return false;
 }
 
-bool IdentList() {
-  if (!findInSymbolTable(getToken()))
-    return false;
-  Advance();
+bool IdentList()
+{
+  string currentToken = getToken();
 
+  if (!findInSymbolTable(currentToken))
+    return false;
+
+  Advance();
   if (!IdentList_Prime())
     return false;
 
   return true;
 }
 
-bool IdentList_Prime() {
-  if (getToken() == ",") {
+bool IdentList_Prime()
+{
+  if (getToken() == ",")
+  {
     Advance();
 
     if (!IdentList())
@@ -206,7 +252,8 @@ bool IdentList_Prime() {
   return true;
 }
 
-bool WhileStmt() {
+bool WhileStmt()
+{
   if (getToken() != "while")
     return false;
 
@@ -220,15 +267,16 @@ bool WhileStmt() {
 
   if (getToken() != ")")
     return false;
-
   Advance();
+
   if (!Stmt())
     return false;
 
   return true;
 }
 
-bool IfStmt() {
+bool IfStmt()
+{
   if (getToken() != "Agar")
     return false;
 
@@ -244,6 +292,7 @@ bool IfStmt() {
     return false;
 
   Advance();
+
   if (!Stmt())
     return false;
 
@@ -253,8 +302,10 @@ bool IfStmt() {
   return true;
 }
 
-bool ElsePart() {
-  if (getToken() == "Wagarna") {
+bool ElsePart()
+{
+  if (getToken() == "Wagarna")
+  {
     Advance();
 
     if (!Stmt())
@@ -263,7 +314,8 @@ bool ElsePart() {
   return true;
 }
 
-bool CompStmt() {
+bool CompStmt()
+{
   if (getToken() != "{")
     return false;
 
@@ -274,20 +326,24 @@ bool CompStmt() {
   if (getToken() != "}")
     return false;
 
-  Advance();
   return true;
 }
 
-bool StmtList() {
-  if (Stmt()) {
+bool StmtList()
+{
+  if (Stmt())
+  {
     if (!StmtList())
       return false;
   }
   return true;
 }
 
-bool Expr() {
-  if (findInSymbolTable(getToken())) {
+bool Expr()
+{
+  if (findInSymbolTable(getToken()))
+  {
+
     Advance();
     if (getToken() != ":=")
       return false;
@@ -296,23 +352,26 @@ bool Expr() {
     if (!Expr())
       return false;
     return true;
-  } else if (Rvalue())
-    return true;
-
-  return false;
+  }
+  else
+    return Rvalue();
 }
 
-bool Rvalue() {
+bool Rvalue()
+{
   if (!Mag())
     return false;
 
   if (!Rvalue_Prime())
     return false;
+
   return true;
 }
 
-bool Rvalue_Prime() {
-  if (Compare()) {
+bool Rvalue_Prime()
+{
+  if (Compare())
+  {
     if (!Mag())
       return false;
 
@@ -322,29 +381,35 @@ bool Rvalue_Prime() {
   return true;
 }
 
-bool Compare() {
-  string curTok = getToken();
+bool Compare()
+{
+  string tok = getToken();
 
-  if (curTok == "==" || curTok == "<" || curTok == ">" || curTok == "<=" ||
-      curTok == ">=" || curTok == "!=" || curTok == "<>") {
+  if (tok == "==" || tok == "<" || tok == ">" || tok == "<=" || tok == ">=" || tok == "!=" || tok == "<>")
+  {
     Advance();
     return true;
   }
   return false;
 }
 
-bool Mag() {
+bool Mag()
+{
   if (!Term())
     return false;
 
   if (!Mag_Prime())
     return false;
+
   return true;
 }
 
-bool Mag_Prime() {
-  string currentToken = getToken();
-  if (currentToken == "+" || currentToken == "-") {
+bool Mag_Prime()
+{
+  string tok = getToken();
+
+  if (tok == "+" || tok == "-")
+  {
     Advance();
 
     if (!Term())
@@ -356,18 +421,23 @@ bool Mag_Prime() {
   return true;
 }
 
-bool Term() {
+bool Term()
+{
   if (!Factor())
     return false;
 
   if (!Term_Prime())
     return false;
+
   return true;
 }
 
-bool Term_Prime() {
-  string currentToken = getToken();
-  if (currentToken == "*" || currentToken == "/") {
+bool Term_Prime()
+{
+  string tok = getToken();
+
+  if (tok == "*" || tok == "/")
+  {
     Advance();
 
     if (!Factor())
@@ -379,8 +449,10 @@ bool Term_Prime() {
   return true;
 }
 
-bool Factor() {
-  if (getToken() == "(") {
+bool Factor()
+{
+  if (getToken() == "(")
+  {
     Advance();
 
     if (!Expr())
@@ -391,22 +463,37 @@ bool Factor() {
 
     Advance();
     return true;
-  } else if (findInSymbolTable(getToken())) {
-    Advance();
-    return true;
-  } else if (findInLiteralTable(getToken())) {
+  }
+  else if (findInSymbolTable(getToken()))
+  {
     Advance();
     return true;
   }
+  else if (findInLiteralTable(getToken()))
+  {
+    Advance();
+    return true;
+  }
+
   return false;
 }
 
-int main() {
+int main()
+{
+  vector<Rule> RuleList(19);
+
+  if (!TacFile)
+  {
+    printf("Failed to Open TacGen.txt\n");
+    return 1;
+  }
+
   setTokenVector(Tokens, "Tokens.txt");
 
-  if (ThreeAddressCode())
+  if (ThreAddressCode(RuleList))
     cout << "Successful\n";
   else
     cout << "Failed\n";
+
   return 0;
 }
