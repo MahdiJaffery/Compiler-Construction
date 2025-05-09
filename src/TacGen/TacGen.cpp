@@ -30,7 +30,7 @@ struct Rule
 	Rule() : relop(""), val(""), trueLabel(""), falseLabel(""), label(""),
 			 type(""), start(""), looplabel(""), end(""), init(""), cond(""), incr("") {}
 };
-
+//;
 ofstream TacFile("Tac.txt", ios::app);
 int tempIndex = 1, labelValue = 1;
 vector<string> Tokens;
