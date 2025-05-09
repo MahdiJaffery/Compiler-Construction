@@ -157,6 +157,7 @@ bool Mag_Prime();
 bool Term();
 bool Term_Prime();
 bool Factor();
+;
 
 bool ThreAddressCode(vector<Rule> &RuleList)
 {
