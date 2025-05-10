@@ -91,10 +91,11 @@ void setTokenVector(vector<string> &Tokens, string filename)
 		string token;
 		string quotedToken;
 		bool inQuotes = false;
+		bool removed = false;
 
 		while (ss >> token)
 		{
-			if (token[0] == '<')
+			if (token[0] == '<' && token[token.length() - 1] == ',')
 				continue;
 
 			if (token.find('\"') != string::npos)
