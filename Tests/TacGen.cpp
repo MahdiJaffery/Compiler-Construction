@@ -123,12 +123,12 @@ void setTokenVector(vector<string> &Tokens, string filename)
 				quotedToken += " " + token;
 			else
 			{
-				size_t endPos = token.find('>');
-				if (endPos != string::npos)
-					token = token.substr(0, endPos);
+				// size_t endPos = token.find('>');
+				if (token.back() == '>')
+					token = token.substr(0, token.length() - 1);
 
-				if (!token.empty() && token.back() == ',')
-					token = token.substr(0, token.size() - 1);
+				// if (!token.empty() && token.back() == ',')
+				// 	token = token.substr(0, token.size() - 1);
 
 				if (!token.empty())
 					Tokens.push_back(token);
@@ -362,7 +362,7 @@ bool Rvalue_Prime(Rule &myRule)
 			return false;
 
 		string tempVar = "T" + to_string(tempIndex++);
-		gen(tempVar + " = " + myRule.val + CompareRule.relop + MagRule.val);
+		gen(tempVar + " = " + myRule.val + " " + CompareRule.relop + " " + MagRule.val);
 		myRule.val = tempVar;
 
 		Rule Rvalue_Prime_Rule;
@@ -393,30 +393,36 @@ bool Rvalue(Rule &myRule)
 
 bool Expr(Rule &myRule)
 {
-	if (findInSymbolTable(getToken()))
+	Rule RvalueRule;
+	bool isAssignment = peek() == ":=";
+
+	if (!isAssignment)
 	{
-		string varName = getToken();
-		Advance();
-		if (getToken() != ":=")
-			return false;
-		Advance();
-
-		Rule ExprRule;
-		if (!Expr(ExprRule))
-			return false;
-
-		gen(varName + " = " + ExprRule.val);
-		myRule.val = varName;
-		return true;
+		if (Rvalue(RvalueRule))
+		{
+			myRule.val = RvalueRule.val;
+			return true;
+		}
+		return false;
 	}
 	else
-	{
-		Rule RvalueRule;
-		if (!Rvalue(RvalueRule))
-			return false;
-		myRule.val = RvalueRule.val;
-		return true;
-	}
+		if (findInSymbolTable(getToken()))
+		{
+			string varName = getToken();
+			Advance();
+			if (getToken() != ":=")
+				return false;
+			Advance();
+
+			Rule ExprRule;
+			if (!Expr(ExprRule))
+				return false;
+
+			gen(varName + " = " + ExprRule.val);
+			myRule.val = varName;
+			return true;
+		}
+	else return false;
 }
 
 bool ElsePart(Rule &myRule)
