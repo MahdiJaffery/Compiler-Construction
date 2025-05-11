@@ -1,21 +1,23 @@
-Adadi _Mahdi , _Talal , _Rafay ::
+Adadi _Marqazi ( Adadi _argc ) {
+    Adadi _Mahdi , _Talal , _Rafay ::
 
-_Mahdi := 45 ::
+    _Mahdi := 45 ::
 
-while (_Mahdi < 50) {
-  _Mahdi := (_Talal == 40) + _Rafay ::
+    while (_Mahdi < 50) {
+    _Mahdi := (_Talal == 40) + _Rafay ::
 
-  Agar (_Talal > 78) {
-    _Rafay := 69 ::
-  } Wagarna {
-    _Talal := 69 ::
+        Agar (_Talal > 78) {
+            _Rafay := 69 ::
+        } Wagarna {
+            _Talal := 69 ::
 
-    while (_Rafay > 20){
-      _Rafay := 90 ::
+            while (_Rafay > 20){
+                _Rafay := 90 ::
 
-      while (_Mahdi >= 3) {
-        _Mahdi := _Mahdi - 1 ::
-      }
+                while (_Mahdi >= 3) {
+                    _Mahdi := _Mahdi - 1 ::
+                }
+            }
+        }
     }
-  }
 }

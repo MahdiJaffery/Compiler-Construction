@@ -1,0 +1,43 @@
+Function → Type identifier ( ArgList ) CompoundStmt
+
+ArgList → Arg ArgList'
+ArgList' → , Arg ArgList' | ε
+
+Arg → Type identifier
+
+Declaration → Type IdentList ::
+
+Type → Adadi | Ashriya | Harf | Matn | Mantiqi
+
+IdentList → identifier IdentList'
+IdentList' → , IdentList | ε
+
+Stmt → ForStmt | WhileStmt | ExprStmt | IfStmt | CompStmt | Declaration | ::
+ExprStmt → Expr ::
+
+ForStmt → for ( ForInit :: ForCond :: ForInc ) Stmt
+ForInit → Expr | ε
+ForCond → Expr | ε
+ForInc → Expr | ε
+
+WhileStmt → while ( Expr ) Stmt
+
+IfStmt → Agar ( Expr ) Stmt ElsePart
+ElsePart → Wagarna Stmt | ε
+
+CompStmt → { StmtList }
+StmtList → Stmt StmtList | ε
+
+Expr → identifier := Expr | Rvalue
+Rvalue → Mag Rvalue'
+Rvalue' → Compare Mag Rvalue' | ε
+
+Compare → == | < | > | <= | >= | != | <>
+
+Mag → Term Mag'
+Mag' → + Term Mag' | - Term Mag' | ε
+
+Term → Factor Term'
+Term' → * Factor Term' | / Factor Term' | ε
+
+Factor → ( Expr ) | identifier | number
