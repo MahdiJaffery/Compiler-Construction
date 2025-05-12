@@ -164,7 +164,7 @@ void Advance()
 	}
 }
 
-bool Parser();
+bool ThreeAddressCode();
 bool Type(Rule &myRule);
 bool ArgList(Rule &myRule);
 bool ArgList_Prime(Rule &myRule);
@@ -512,11 +512,12 @@ bool IfStmt(Rule &myRule)
 	if (!Stmt(stmtRule))
 		return false;
 
+	gen(myRule.falseLabel + ":");
+	
 	Rule elsePartRule;
 	if (!ElsePart(elsePartRule))
 		return false;
 
-	gen(myRule.falseLabel + ":");
 	return true;
 }
 
@@ -719,7 +720,7 @@ bool Factor(Rule &myRule)
 	return false;
 }
 
-bool Parser()
+bool ThreeAddressCode()
 {
 	Rule typeRule;
 	if (!Type(typeRule))
@@ -760,7 +761,7 @@ int main()
 	setTokenVector(Tokens, "Tokens.txt");
 
 	Rule mainRule;
-	if (Parser())
+	if (ThreeAddressCode())
 	{
 		cout << "TAC generation successful!" << endl;
 	}
