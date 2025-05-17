@@ -2,17 +2,17 @@ all: cleanBefore lexer parser tac
 
 lexer:
 	rm -f 1 *.out *Table.txt Tokens.txt Lexer
-	g++ Lexer.cpp -o 1
+	g++ Lexer.cpp -o 1 -std=c++17
 	./1
 
 parser:
 	rm -f 2 Parser
-	g++ Parser.cpp -o 2
+	g++ Parser.cpp -o 2 -std=c++17
 	./2
 
 tac:
 	rm -f 3 Tac.txt TacGen
-	g++ TacGen.cpp -o 3
+	g++ TacGen.cpp -o 3 -std=c++17
 	./3
 
 clean:
